@@ -34,7 +34,7 @@ def test_default_model_used_when_none_given(monkeypatch):
     monkeypatch.delenv("CPR_LLM_MODEL", raising=False)
     seen = _record_model(monkeypatch)
     llm.enrich(analyze(CLAIM))
-    assert seen["model"] == llm.DEFAULT_MODEL == "anthropic/claude-sonnet-5-5"
+    assert seen["model"] == llm.DEFAULT_MODEL == "anthropic/claude-opus-5-5"
 
 
 def test_model_precedence_flag_then_env_then_default(monkeypatch):

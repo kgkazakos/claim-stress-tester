@@ -48,16 +48,14 @@ The reasoning layer uses `litellm`, a core dependency, so any provider works. If
 
 ### Choosing a model
 
-The model is picked in this order: the `--model` flag (or the Streamlit model picker), then the `CPR_LLM_MODEL` environment variable, then the default `anthropic/claude-sonnet-5-5`. Each provider needs its own key:
+The model is picked in this order: the `--model` flag (or the Streamlit model picker), then the `CPR_LLM_MODEL` environment variable, then the default `anthropic/claude-opus-5-5`. Reasoning is the product here, so the default is a strong reasoning model; a smaller one such as `anthropic/claude-sonnet-5-5` is cheaper and faster. Each provider needs its own key:
 
 ```bash
-export ANTHROPIC_API_KEY=...   # cst run claim.json --model anthropic/claude-sonnet-5-5
+export ANTHROPIC_API_KEY=...   # cst run claim.json --model anthropic/claude-opus-5-5
 export OPENAI_API_KEY=...      # cst run claim.json --model openai/gpt-5.5
 export GEMINI_API_KEY=...      # cst run claim.json --model gemini/gemini-3.5-flash
 ollama pull llama3.1           # cst run claim.json --model ollama/llama3.1   (local, no key)
 ```
-
-A reasoning-capable model gives the strongest paths.
 
 ## CLI
 

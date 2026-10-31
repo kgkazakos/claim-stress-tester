@@ -26,8 +26,8 @@ CHECK_CHIP = {"anchored": "#2f6b4f", "extends": ACCENT, "unanchored": "#7a4b2a"}
 EXAMPLES = sorted((_ROOT / "examples").glob("*.json"))
 # litellm ids, checked against litellm's model list. Each needs its provider key in the environment.
 MODEL_PRESETS = {
-    "Anthropic · Claude Sonnet 5.5 (default)": DEFAULT_MODEL,
-    "Anthropic · Claude Opus 5.5": "anthropic/claude-opus-5-5",
+    "Anthropic · Claude Opus 5.5 (default)": DEFAULT_MODEL,
+    "Anthropic · Claude Sonnet 5.5": "anthropic/claude-sonnet-5-5",
     "Anthropic · Claude Opus 4.8": "anthropic/claude-opus-4-8",
     "OpenAI · GPT-5.5": "openai/gpt-5.5",
     "Google · Gemini 3.5 Flash": "gemini/gemini-3.5-flash",

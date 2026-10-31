@@ -24,7 +24,7 @@ from typing import Any, Optional
 from .engine import RULES, check_paths
 from .models import ClaimResult, FalsificationPath, Report
 
-DEFAULT_MODEL = "anthropic/claude-sonnet-5-5"
+DEFAULT_MODEL = "anthropic/claude-opus-5-5"  # reasoning is the product: default to the strongest reasoner
 MODEL_ENV = "CPR_LLM_MODEL"
 DEFAULT_PATHS = 3  # without --verify
 

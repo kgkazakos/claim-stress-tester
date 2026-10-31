@@ -45,7 +45,7 @@ def ai_options(f):
     f = click.option("--paths", default=4, show_default=True, type=click.IntRange(1, 8),
                      help="Falsification paths to ask the model for in --verify mode.")(f)
     f = click.option("--verify", is_flag=True, help="Verification-chain mode: more paths, each traced to the evidence and rules it targets.")(f)
-    f = click.option("--model", default=None, help="litellm model id. Precedence: --model, CPR_LLM_MODEL, anthropic/claude-sonnet-5-5.")(f)
+    f = click.option("--model", default=None, help="litellm model id. Precedence: --model, CPR_LLM_MODEL, anthropic/claude-opus-5-5.")(f)
     f = click.option("--no-llm", is_flag=True, help="Deterministic core only; never calls a model.")(f)
     return f
 
