@@ -1,20 +1,30 @@
 """AI layer for claim-stress-tester.
 
-Strictly additive. If no backend is configured or a call fails, this module returns
-None and the rule-based report stands unchanged. It never reads or mutates any value
-the engine computed. TEMPLATE: describe what this tool's AI layer produces.
+Strictly additive. A reasoning model tries to falsify each claim and returns its
+strongest lines of attack as falsification paths: the attack, what evidence would
+confirm it, and which evidence ids or fired rules it targets. In verification-chain
+mode the engine, not a model, checks those targets against the input.
+
+If no backend is configured or a call fails, a claim's paths stay None and the
+rule-based report stands unchanged. This module never reads back into or mutates any
+value the engine computed.
 """
 
 from __future__ import annotations
 
 import contextlib
+import copy
 import io
+import json
 import os
-from typing import Optional
+import re
+from typing import Any, Optional
 
-from .models import Report
+from .engine import RULES, check_paths
+from .models import ClaimResult, FalsificationPath, Report
 
 DEFAULT_MODEL = os.environ.get("CPR_LLM_MODEL", "gpt-4o-mini")
+DEFAULT_PATHS = 3  # without --verify
 
 # Any litellm-routable model works. Override with --model or CPR_LLM_MODEL.
 
@@ -35,18 +45,85 @@ def _call_model(prompt: str, model: str) -> str:
     return resp["choices"][0]["message"]["content"]
 
 
-def enrich(report: Report, model: Optional[str] = None) -> Optional[str]:
-    """Return an enrichment string, or None if no model is configured or anything fails.
-
-    TEMPLATE: replace the prompt with the tool's enrichment (trace, narrative, etc.).
-    """
-    model = model or DEFAULT_MODEL
-    lines = [f"- [{f.severity}] {f.message}" for f in report.findings] or ["- no findings"]
-    prompt = (
-        "You are assisting a human researcher. Explain these rule-based findings in plain "
-        "language. Do not add, remove or re-score findings.\n" + "\n".join(lines)
+def build_prompt(result: ClaimResult, n_paths: int) -> str:
+    c = result.claim
+    evidence = [
+        f"- {e.id} [{e.stance}] {e.summary} (method: {e.method}; population: {e.population or 'unspecified'}; "
+        f"n: {e.n if e.n is not None else 'unspecified'}; collected: {e.collected or 'unspecified'})"
+        for e in c.evidence
+    ] or ["- none supplied"]
+    findings = [f"- {f.rule_id} {RULES[f.rule_id]}: {f.message}" for f in result.findings] or ["- none fired"]
+    return (
+        "You are helping a human researcher stress-test one of their own research claims. "
+        "Your job is to try to falsify it. Find the strongest reasons it could be wrong: "
+        "populations or contexts where it would fail, confounds, rival explanations, "
+        "measurement problems, and tensions with the evidence below.\n\n"
+        "Rules:\n"
+        "- Write as a single analyst. Do not role-play personas, panels or opposing voices.\n"
+        "- Never invent studies, citations, statistics, quotes or data. Each path is a "
+        "hypothesis to check, and 'would_confirm' says what evidence the researcher would "
+        "need to collect or look up to confirm it.\n"
+        "- 'targets' lists only evidence ids and rule ids from the lists below that the "
+        "attack bears on. Use an empty list if it bears on none of them.\n"
+        "- Do not say whether the claim is true. The researcher decides.\n\n"
+        f"Claim {c.id}: {c.statement}\n"
+        f"Claimed population: {c.population or 'unspecified'}\n"
+        f"Stated falsification condition: {c.would_be_wrong_if or 'none stated'}\n"
+        f"Stated limitations: {c.limitations or 'none stated'}\n\n"
+        "Evidence:\n" + "\n".join(evidence) + "\n\n"
+        "Rule-based stress findings that fired:\n" + "\n".join(findings) + "\n\n"
+        f"Return the {n_paths} strongest falsification paths, strongest first, as JSON only:\n"
+        '{"paths": [{"attack": "...", "would_confirm": "...", "targets": ["e1", "S02"]}]}'
     )
+
+
+def parse_paths(text: str, n_paths: int) -> Optional[list[FalsificationPath]]:
+    """Parse the model's JSON reply. Returns None if nothing usable came back."""
+    m = re.search(r"\{.*\}", text or "", re.DOTALL)
+    if not m:
+        return None
+    data: Any = json.loads(m.group(0))
+    out = []
+    for item in (data.get("paths") or [])[:n_paths]:
+        if not isinstance(item, dict):
+            continue
+        attack = str(item.get("attack") or "").strip()
+        confirm = str(item.get("would_confirm") or "").strip()
+        if not attack:
+            continue
+        targets = item.get("targets") or []
+        if not isinstance(targets, list):
+            targets = [targets]
+        out.append(FalsificationPath(
+            attack=attack,
+            would_confirm=confirm,
+            targets=tuple(dict.fromkeys(str(t).strip() for t in targets if str(t).strip())),
+        ))
+    return out or None
+
+
+def falsify(result: ClaimResult, model: str, n_paths: int, verify: bool) -> Optional[list[FalsificationPath]]:
     try:
-        return _call_model(prompt, model)
+        paths = parse_paths(_call_model(build_prompt(result, n_paths), model), n_paths)
     except Exception:  # graceful degradation: the rule-based result stands
         return None
+    if paths and verify:
+        paths = check_paths(result, paths)
+    return paths
+
+
+def enrich(report: Report, model: Optional[str] = None, verify: bool = False,
+           n_paths: Optional[int] = None) -> Report:
+    """Return a copy of the report with falsification paths added where the model answered.
+
+    Findings, probes and synthetic shares are copied untouched. If every call fails, the
+    returned report equals the --no-llm report.
+    """
+    model = model or DEFAULT_MODEL
+    n = n_paths if (verify and n_paths) else DEFAULT_PATHS
+    out = copy.deepcopy(report)
+    for r in out.results:
+        r.paths = falsify(r, model, n, verify)
+    if any(r.paths for r in out.results):
+        out.model, out.verify = model, verify
+    return out
