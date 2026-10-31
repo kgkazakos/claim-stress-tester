@@ -8,20 +8,20 @@ CPR Phase II, Frame A (Test-Time Deliberation), tool 2. It reads a finished rese
 
 claim-stress-tester reads one or more claims, each with its supporting and disconfirming evidence, and produces two things:
 
-1. A stress profile from a deterministic engine. Ten rules check the claim against its own evidence (overreach, causal language, scope, thinness, staleness, synthetic share and more). Each finding carries a probe: a falsification question you can take back into the data or the field. This runs with no model.
-2. Falsification paths from a reasoning model. Each path is a line of attack on the claim, what evidence would confirm it, and which evidence items or fired rules it targets. Paths are hypotheses to check, not evidence.
+1. Falsification paths from a reasoning model. Each path is a line of attack on the claim, what evidence would confirm it, and which evidence items or fired rules it targets. Paths are hypotheses to check, not evidence. They lead the output.
+2. A stress profile from a deterministic engine, which verifies the paths. Ten rules (S01 to S10) check the claim against its own evidence: overreach, causal language, scope, thinness, staleness, synthetic share and more. Each finding carries a probe, a falsification question you can take back into the data or the field. The engine checks every path against these findings and the evidence ids, and labels it `anchored`, `extends` or `unanchored`. This layer runs with no model.
 
-Start with the probes. They are the cheapest way to find out whether a claim survives, and they do not depend on a model. An empty stress profile is not support for a claim: it only means the claim cleared these structural checks.
+With `--no-llm` you get the stress profile and its probes alone. They are the cheapest way to find out whether a claim survives. An empty stress profile is not support for a claim: it only means the claim cleared these structural checks.
 
 ## Verification-chain mode
 
-A model asked to falsify a claim can invent problems as confidently as it invents support. Verification-chain mode (`--verify`) asks for several paths, then the engine, not the model, checks each path's targets against the input:
+A model asked to falsify a claim can invent problems as confidently as it invents support, so the engine, not the model, checks every path's targets against the input:
 
 - `anchored`: every target is an evidence id in the claim or a stress rule that fired.
 - `extends`: no targets. A new line of attack the engine has nothing to check against. Treat it as a lead.
 - `unanchored`: at least one target does not exist in the input. Treat with caution; the ids it invented are listed.
 
-The model does not grade its own paths, and nothing it returns can change a finding. Without `--verify` the tool asks for the three strongest paths and leaves them unchecked.
+The model does not grade its own paths: any grade it returns is ignored and recomputed, and nothing it returns can change a finding. By default the tool asks for the three strongest paths. Verification-chain mode (`--verify`) asks for `--paths` of them (default 4) and traces each one to the evidence items and rules it targets, by name, so you can follow the chain back to your own input.
 
 ## AI paradigm
 
@@ -44,21 +44,35 @@ python -m pip install --upgrade pip setuptools wheel
 pip install -e ".[dev,ui]" --no-build-isolation
 ```
 
-The reasoning layer uses `litellm`, a core dependency. Set a backend with `CPR_LLM_MODEL` (default `gpt-4o-mini`; a reasoning model is recommended) and the usual provider key. With no backend, or if a call fails, the tool degrades gracefully to the deterministic stress profile.
+The reasoning layer uses `litellm`, a core dependency, so any provider works. If the model is unavailable, or a call fails, the tool shows a "model unavailable" note and falls back to the deterministic stress profile.
+
+### Choosing a model
+
+The model is picked in this order: the `--model` flag (or the Streamlit model picker), then the `CPR_LLM_MODEL` environment variable, then the default `anthropic/claude-sonnet-5-5`. Each provider needs its own key:
+
+```bash
+export ANTHROPIC_API_KEY=...   # cst run claim.json --model anthropic/claude-sonnet-5-5
+export OPENAI_API_KEY=...      # cst run claim.json --model openai/gpt-5.5
+export GEMINI_API_KEY=...      # cst run claim.json --model gemini/gemini-3.5-flash
+ollama pull llama3.1           # cst run claim.json --model ollama/llama3.1   (local, no key)
+```
+
+A reasoning-capable model gives the strongest paths.
 
 ## CLI
 
 ```bash
-cst run examples/onboarding_claim.json                      # stress profile + falsification paths
-cst run examples/onboarding_claim.json --no-llm             # deterministic core only
+cst run examples/onboarding_claim.json                      # falsification paths, checked by the stress profile
+cst run examples/onboarding_claim.json --no-llm             # stress profile only, no model
 cst run examples/onboarding_claim.json --verify --paths 5   # verification-chain mode
+cst run examples/pricing_claim.json --model openai/gpt-5.5  # any litellm model id
 cst run examples/claims_batch.json --as-of 2026-10-31       # reference date for undated claims
 cst probes examples/pricing_claim.json                      # probes only, as a fieldwork checklist
 cst export examples/onboarding_claim.json -o out.json       # versioned JSON (cpr.cst.export/1)
 cst paradigm                                                # paradigm + rationale
 ```
 
-Every command that can call a model accepts `--no-llm`, `--verify`, `--paths` and `--model`. `probes` never calls a model.
+`run` and `export` call a model and accept `--model`, `--no-llm`, `--verify` and `--paths`. `probes` and `paradigm` never call a model.
 
 ## Streamlit
 
@@ -66,7 +80,7 @@ Every command that can call a model accepts `--no-llm`, `--verify`, `--paths` an
 streamlit run claim_stress_tester/app.py
 ```
 
-Frame A visual language: deep violet accent `#4f3d8f`, DM Sans and DM Mono, near-black sidebar, warm-beige controls, cream main, card rows with severity chips. Each claim renders as a card with its synthetic share, followed by its stress findings with probes, then its falsification paths with verification chips, labelled as additive AI output.
+Frame A visual language: deep violet accent `#4f3d8f`, DM Sans and DM Mono, near-black sidebar, warm-beige controls, cream main, card rows with severity chips. The sidebar holds a model picker with Anthropic, OpenAI, Google and local Ollama presets, plus a free-text field for any litellm id. Each claim renders as a card with its synthetic share, then its falsification paths with the engine's check chips, labelled as AI-generated with the model id, then the stress profile that verified them.
 
 ## The stress rules
 
@@ -119,14 +133,14 @@ See `examples/` for:
 
 ## Build
 
-- Rule-based deterministic core, additive reasoning layer, graceful degradation.
-- `paradigm` command and `--no-llm` flag, per the Phase II conventions.
+- Model-first: a reasoning model's falsification paths lead, a rule-based engine verifies every one, and the tool falls back gracefully when the model is unavailable.
+- `paradigm` command, and `--no-llm` for the deterministic checks alone.
 - pytest suite, CI on Python 3.10, 3.11, 3.12.
 - Versioned export `cpr.cst.export/1`.
 
 ## IP
 
-Clean. A single-model critique tool: no synthetic data produced, no agents, no orchestration, no automatic linkage to external systems. The engine checks the model's output; no model judges another. Not on any constraint list.
+A single-model critique tool: no synthetic data produced, no agents, no orchestration, no automatic linkage to external systems. The engine checks the model's output; no model judges another.
 
 ## License
 
