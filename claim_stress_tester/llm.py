@@ -1,13 +1,14 @@
-"""AI layer for claim-stress-tester.
+"""Model layer for claim-stress-tester.
 
-Strictly additive. A reasoning model tries to falsify each claim and returns its
-strongest lines of attack as falsification paths: the attack, what evidence would
-confirm it, and which evidence ids or fired rules it targets. In verification-chain
-mode the engine, not a model, checks those targets against the input.
+The model's falsification paths are the product. A reasoning model tries to falsify
+each claim and returns its strongest lines of attack: the attack, what evidence would
+confirm it, and which evidence ids or fired rules it targets. The engine, not a model,
+then checks every path against the input and the S01-S10 findings. Any grade the model
+returns is ignored.
 
-If no backend is configured or a call fails, a claim's paths stay None and the
-rule-based report stands unchanged. This module never reads back into or mutates any
-value the engine computed.
+If a call fails or the reply is unusable, a claim's paths stay None. If no claim gets
+paths, the report equals the --no-llm report apart from a visible "model unavailable"
+note. This module never reads back into or mutates any value the engine computed.
 """
 
 from __future__ import annotations
@@ -23,10 +24,14 @@ from typing import Any, Optional
 from .engine import RULES, check_paths
 from .models import ClaimResult, FalsificationPath, Report
 
-DEFAULT_MODEL = os.environ.get("CPR_LLM_MODEL", "gpt-4o-mini")
+DEFAULT_MODEL = "anthropic/claude-sonnet-5-5"
+MODEL_ENV = "CPR_LLM_MODEL"
 DEFAULT_PATHS = 3  # without --verify
 
-# Any litellm-routable model works. Override with --model or CPR_LLM_MODEL.
+
+def resolve_model(model: Optional[str] = None) -> str:
+    """Any litellm-routable id. Precedence: --model, then CPR_LLM_MODEL, then the default."""
+    return model or os.environ.get(MODEL_ENV) or DEFAULT_MODEL
 
 
 @contextlib.contextmanager
@@ -102,28 +107,29 @@ def parse_paths(text: str, n_paths: int) -> Optional[list[FalsificationPath]]:
     return out or None
 
 
-def falsify(result: ClaimResult, model: str, n_paths: int, verify: bool) -> Optional[list[FalsificationPath]]:
+def falsify(result: ClaimResult, model: str, n_paths: int) -> Optional[list[FalsificationPath]]:
     try:
         paths = parse_paths(_call_model(build_prompt(result, n_paths), model), n_paths)
     except Exception:  # graceful degradation: the rule-based result stands
         return None
-    if paths and verify:
-        paths = check_paths(result, paths)
-    return paths
+    # The engine checks every path, in every mode. The model never grades itself.
+    return check_paths(result, paths) if paths else None
 
 
 def enrich(report: Report, model: Optional[str] = None, verify: bool = False,
            n_paths: Optional[int] = None) -> Report:
-    """Return a copy of the report with falsification paths added where the model answered.
+    """Return a copy of the report with engine-checked falsification paths where the model answered.
 
     Findings, probes and synthetic shares are copied untouched. If every call fails, the
-    returned report equals the --no-llm report.
+    returned report equals the --no-llm report apart from `model_note`.
     """
-    model = model or DEFAULT_MODEL
+    model = resolve_model(model)
     n = n_paths if (verify and n_paths) else DEFAULT_PATHS
     out = copy.deepcopy(report)
     for r in out.results:
-        r.paths = falsify(r, model, n, verify)
+        r.paths = falsify(r, model, n)
     if any(r.paths for r in out.results):
         out.model, out.verify = model, verify
+    else:
+        out.model_note = f"model unavailable ({model}); showing the --no-llm report"
     return out

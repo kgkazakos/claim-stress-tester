@@ -46,14 +46,16 @@ def test_text_render_shows_rules_and_probes():
     assert "Falsification paths" not in text
 
 
-def test_text_render_labels_paths_as_additive():
+def test_text_render_labels_paths_as_ai_and_engine_checked():
     report = analyze(CLAIM)
     r = report.results[0]
     r.paths = check_paths(r, [FalsificationPath("Admins with no data to import", "Setup logs", ("e1", "e7"))])
     report.model, report.verify = "test/model", True
     text = render_text(report)
-    assert "AI-generated, additive, checked by the engine" in text
-    assert "[unanchored]" in text and "not found in input: e7" in text
+    assert "AI-generated; the engine checked each one" in text
+    assert "[unanchored]" in text and "chain: e7 (not found in input)" in text
+    report.verify = False
+    assert "not found in input: e7" in render_text(report)
 
 
 def test_clean_claim_says_absence_is_not_support():

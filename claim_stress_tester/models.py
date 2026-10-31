@@ -116,6 +116,8 @@ class Report:
     results: list[ClaimResult] = field(default_factory=list)
     model: Optional[str] = None  # set only when the AI layer produced paths
     verify: bool = False
+    # Visible note when the AI layer was asked for but produced nothing ("model unavailable").
+    model_note: Optional[str] = None
 
     @property
     def findings(self) -> list[Finding]:

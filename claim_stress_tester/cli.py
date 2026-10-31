@@ -44,8 +44,8 @@ def ai_options(f):
     f = click.option("--as-of", default=None, help="Reference date for stale evidence when a claim has no date.")(f)
     f = click.option("--paths", default=4, show_default=True, type=click.IntRange(1, 8),
                      help="Falsification paths to ask the model for in --verify mode.")(f)
-    f = click.option("--verify", is_flag=True, help="Verification-chain mode: the engine checks each path's anchors.")(f)
-    f = click.option("--model", default=None, help="litellm model id (or set CPR_LLM_MODEL).")(f)
+    f = click.option("--verify", is_flag=True, help="Verification-chain mode: more paths, each traced to the evidence and rules it targets.")(f)
+    f = click.option("--model", default=None, help="litellm model id. Precedence: --model, CPR_LLM_MODEL, anthropic/claude-sonnet-5-5.")(f)
     f = click.option("--no-llm", is_flag=True, help="Deterministic core only; never calls a model.")(f)
     return f
 
@@ -61,7 +61,7 @@ def main() -> None:
 @ai_options
 @click.option("--format", "fmt", type=click.Choice(["text", "json"]), default="text")
 def run(path, no_llm, model, verify, paths, as_of, fmt) -> None:
-    """Stress profile plus falsification paths for each claim."""
+    """Falsification paths for each claim, checked against the stress profile."""
     report = _run(path, no_llm, model, verify, paths, as_of)
     if fmt == "json":
         click.echo(json.dumps(to_export(report), indent=2))

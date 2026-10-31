@@ -19,7 +19,7 @@ REPLY = json.dumps({"paths": [
 ]})
 
 
-def test_default_model_used_when_none_given(monkeypatch):
+def _record_model(monkeypatch):
     seen = {}
 
     def fake(prompt, model):
@@ -27,8 +27,29 @@ def test_default_model_used_when_none_given(monkeypatch):
         return REPLY
 
     monkeypatch.setattr(llm, "_call_model", fake)
+    return seen
+
+
+def test_default_model_used_when_none_given(monkeypatch):
+    monkeypatch.delenv("CPR_LLM_MODEL", raising=False)
+    seen = _record_model(monkeypatch)
     llm.enrich(analyze(CLAIM))
-    assert seen["model"] == llm.DEFAULT_MODEL
+    assert seen["model"] == llm.DEFAULT_MODEL == "anthropic/claude-sonnet-5-5"
+
+
+def test_model_precedence_flag_then_env_then_default(monkeypatch):
+    monkeypatch.setenv("CPR_LLM_MODEL", "env/model")
+    seen = _record_model(monkeypatch)
+    llm.enrich(analyze(CLAIM))
+    assert seen["model"] == "env/model"
+    llm.enrich(analyze(CLAIM), model="flag/model")
+    assert seen["model"] == "flag/model"
+
+
+def _without_note(report):
+    d = report.to_dict()
+    d.pop("model_note")
+    return d
 
 
 def test_model_failure_degrades_to_the_no_llm_report(monkeypatch):
@@ -38,12 +59,16 @@ def test_model_failure_degrades_to_the_no_llm_report(monkeypatch):
     monkeypatch.setattr(llm, "_call_model", boom)
     baseline = analyze(CLAIM)
     enriched = llm.enrich(analyze(CLAIM), model="any/model", verify=True, n_paths=4)
-    assert enriched.to_dict() == baseline.to_dict()
+    assert _without_note(enriched) == _without_note(baseline)
+    assert "model unavailable" in enriched.model_note and "any/model" in enriched.model_note
+    assert baseline.model_note is None
 
 
 def test_unparseable_reply_degrades(monkeypatch):
     monkeypatch.setattr(llm, "_call_model", lambda p, m: "I cannot help with that.")
-    assert llm.enrich(analyze(CLAIM), model="x").to_dict() == analyze(CLAIM).to_dict()
+    enriched = llm.enrich(analyze(CLAIM), model="x")
+    assert _without_note(enriched) == _without_note(analyze(CLAIM))
+    assert "model unavailable" in enriched.model_note
 
 
 def test_enrichment_never_changes_computed_values(monkeypatch):
@@ -64,10 +89,13 @@ def test_verify_mode_lets_the_engine_grade(monkeypatch):
     assert paths[2].unknown_targets == ("e4",)
 
 
-def test_default_mode_leaves_paths_unchecked(monkeypatch):
+def test_default_mode_is_checked_by_the_engine_too(monkeypatch):
     monkeypatch.setattr(llm, "_call_model", lambda p, m: REPLY)
-    paths = llm.enrich(analyze(CLAIM), model="x").results[0].paths
-    assert len(paths) == llm.DEFAULT_PATHS and all(p.check is None for p in paths)
+    report = llm.enrich(analyze(CLAIM), model="x")
+    paths = report.results[0].paths
+    assert len(paths) == llm.DEFAULT_PATHS
+    assert [p.check for p in paths] == ["anchored", "extends", "unanchored"]
+    assert report.verify is False and report.model_note is None
 
 
 def test_reply_check_field_is_ignored(monkeypatch):
