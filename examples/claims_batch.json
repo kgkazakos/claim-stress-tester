@@ -1,0 +1,34 @@
+{
+  "claims": [
+    {
+      "id": "notif-digest",
+      "statement": "Daily digests reduce notification fatigue for managers.",
+      "population": "managers",
+      "would_be_wrong_if": "Managers on digests mute or disable notifications as often as those without.",
+      "evidence": [
+        {"id": "e1", "summary": "Survey of managers on notification load.", "method": "survey", "population": "managers", "n": 120, "collected": "2026-06"},
+        {"id": "e2", "summary": "Interviews with managers who opted into digests.", "method": "interview", "population": "managers", "n": 7, "collected": "2026-07"}
+      ]
+    },
+    {
+      "id": "api-docs",
+      "statement": "Developers never read the API reference before the quickstart.",
+      "population": "developers",
+      "evidence": [
+        {"id": "e1", "summary": "Docs analytics: quickstart is the most common landing page.", "method": "web analytics", "population": "developers", "collected": "2024-02"}
+      ]
+    },
+    {
+      "id": "dark-mode",
+      "statement": "Designers prefer dark mode for long editing sessions.",
+      "population": "designers",
+      "date": "2026-10-01",
+      "would_be_wrong_if": "Designers in long sessions switch back to light mode at a similar rate.",
+      "limitations": "Preference is self-reported in e1.",
+      "evidence": [
+        {"id": "e1", "summary": "Survey: preferred theme for sessions over two hours.", "method": "survey", "population": "designers", "n": 88, "collected": "2026-08"},
+        {"id": "e2", "summary": "Telemetry: theme in use during sessions over two hours.", "method": "telemetry", "population": "designers", "n": 300, "collected": "2026-09"}
+      ]
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "id": "search-filters",
+  "statement": "Among support agents, 27 of 40 (68%) used saved filters weekly after the redesign, up from 9 of 40 before it.",
+  "population": "support agents",
+  "date": "2026-10-20",
+  "would_be_wrong_if": "Weekly saved-filter use falls back toward the pre-redesign level within two months.",
+  "limitations": "Same 40 agents measured twice; novelty effect not ruled out. e3 shows lower use on night shifts; the claim does not cover them.",
+  "evidence": [
+    {
+      "id": "e1",
+      "summary": "Product analytics on saved-filter use, four weeks before and after.",
+      "method": "product analytics",
+      "population": "support agents",
+      "n": 40,
+      "collected": "2026-10"
+    },
+    {
+      "id": "e2",
+      "summary": "Diary study on how agents chose filters during the same period.",
+      "method": "diary study",
+      "population": "support agents",
+      "n": 12,
+      "collected": "2026-10"
+    },
+    {
+      "id": "e3",
+      "summary": "Night-shift agents barely used saved filters.",
+      "method": "product analytics",
+      "population": "night-shift support agents",
+      "n": 8,
+      "collected": "2026-10",
+      "stance": "against"
+    }
+  ]
+}

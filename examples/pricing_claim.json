@@ -1,0 +1,34 @@
+{
+  "id": "pricing-seat-cap",
+  "statement": "Small teams churn at renewal when they hit the five-seat cap on the Starter plan.",
+  "population": "small teams",
+  "date": "2026-10-01",
+  "limitations": "Exit survey response rate was low.",
+  "evidence": [
+    {
+      "id": "e1",
+      "summary": "Exit survey: 'too expensive to add people' was the top free-text theme.",
+      "method": "survey",
+      "population": "small teams",
+      "n": 61,
+      "collected": "2023-11"
+    },
+    {
+      "id": "e2",
+      "summary": "Follow-up survey on plan limits among teams that downgraded.",
+      "method": "survey",
+      "population": "small teams",
+      "n": 34,
+      "collected": "2026-05"
+    },
+    {
+      "id": "e3",
+      "summary": "Billing data: most churned Starter teams had three seats or fewer at renewal.",
+      "method": "billing analytics",
+      "population": "small teams",
+      "n": 412,
+      "collected": "2026-08",
+      "stance": "against"
+    }
+  ]
+}

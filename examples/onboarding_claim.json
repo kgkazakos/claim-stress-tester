@@ -1,0 +1,25 @@
+{
+  "id": "onboarding-import",
+  "statement": "All new users abandon onboarding because the data import step is too hard, and this clearly drives first-month churn.",
+  "population": "new users",
+  "date": "2026-09-15",
+  "limitations": "Interviews were scheduled through the admin console.",
+  "evidence": [
+    {
+      "id": "e1",
+      "summary": "Eight of nine interviewed admins described import as the hardest part of setup.",
+      "method": "interview",
+      "population": "workspace admins",
+      "n": 9,
+      "collected": "2026-07"
+    },
+    {
+      "id": "e2",
+      "summary": "Session replays show long dwell time on the import screen.",
+      "method": "session replay",
+      "population": "workspace admins",
+      "n": 40,
+      "collected": "2026-08"
+    }
+  ]
+}

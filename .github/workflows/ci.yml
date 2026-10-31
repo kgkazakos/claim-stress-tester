@@ -36,6 +36,7 @@ jobs:
         run: |
           cst --version
           cst paradigm
-          cst run examples/sample.json --no-llm
-          cst export examples/sample.json --no-llm -o /tmp/out.json
+          cst run examples/onboarding_claim.json --no-llm
+          cst probes examples/claims_batch.json
+          cst export examples/onboarding_claim.json --no-llm -o /tmp/out.json
           python -c "import json; d=json.load(open('/tmp/out.json')); assert d['schema']=='cpr.cst.export/1'"

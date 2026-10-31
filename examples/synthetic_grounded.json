@@ -1,0 +1,50 @@
+{
+  "id": "mobile-offline",
+  "statement": "Field technicians want offline mode before any other mobile feature.",
+  "population": "field technicians",
+  "date": "2026-10-10",
+  "would_be_wrong_if": "Technicians rank offline mode below photo capture or scheduling in a forced-rank exercise.",
+  "limitations": "Only one region was sampled.",
+  "evidence": [
+    {
+      "id": "e1",
+      "summary": "Two contextual inquiry sessions with technicians in the north region.",
+      "method": "contextual inquiry",
+      "population": "field technicians",
+      "n": 2,
+      "collected": "2026-09"
+    },
+    {
+      "id": "e2",
+      "summary": "Synthetic interviews generated from the two inquiry sessions.",
+      "method": "synthetic interview",
+      "population": "field technicians",
+      "n": 3,
+      "collected": "2026-09",
+      "_cpr_synthetic": {
+        "tool": "synthetic-interviewer",
+        "version": "0.2.0",
+        "generated_at": "2026-09-20T10:00:00Z",
+        "model": "gpt-4o-mini",
+        "human_grounding": "seeded",
+        "ancestry": ["inquiry-north-01", "inquiry-north-02"]
+      }
+    },
+    {
+      "id": "e3",
+      "summary": "Persona panel responses with no human seed.",
+      "method": "synthetic panel",
+      "population": "field technicians",
+      "n": 4,
+      "collected": "2026-09",
+      "_cpr_synthetic": {
+        "tool": "persona-panel",
+        "version": "0.1.0",
+        "generated_at": "2026-09-21T10:00:00Z",
+        "model": "gpt-4o-mini",
+        "human_grounding": "none",
+        "ancestry": []
+      }
+    }
+  ]
+}
