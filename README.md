@@ -1,4 +1,4 @@
-# cpr-tool
+# claim-stress-tester
 
 TEMPLATE: one-line tagline. What the tool is, in one sentence.
 

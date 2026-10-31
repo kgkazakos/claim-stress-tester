@@ -25,7 +25,7 @@ def _run(path: str, no_llm: bool, model: str | None):
 @click.group()
 @click.version_option(__version__, prog_name=TOOL_NAME)
 def main() -> None:
-    """TEMPLATE: one-line description of the tool."""
+    """Try to falsify a research claim against its evidence."""
 
 
 @main.command()

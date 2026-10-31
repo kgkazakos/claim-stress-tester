@@ -3,8 +3,8 @@ from pathlib import Path
 
 from click.testing import CliRunner
 
-from cpr_tool.cli import main
-from cpr_tool.models import AI_PARADIGM, EXPORT_SCHEMA
+from claim_stress_tester.cli import main
+from claim_stress_tester.models import AI_PARADIGM, EXPORT_SCHEMA
 
 EXAMPLE = str(Path(__file__).resolve().parent.parent / "examples" / "sample.json")
 

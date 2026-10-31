@@ -3,14 +3,14 @@ requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "cpr-tool"  # TEMPLATE: tool slug
+name = "claim-stress-tester"
 version = "0.1.0"
-description = "TEMPLATE: one-line description. CPR Phase II, Frame X tool N."
+description = "Test-time deliberation that tries to falsify a research claim. CPR Phase II, Frame A tool 2."
 readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "MIT" }
 authors = [{ name = "Kostas Kazakos" }]
-keywords = ["research-methods", "uxr", "cpr", "ai-native-research"]  # TEMPLATE: add paradigm keywords
+keywords = ["research-methods", "uxr", "cpr", "ai-native-research", "falsification", "llm-reasoning", "test-time-compute"]
 classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
@@ -31,10 +31,10 @@ ui = ["streamlit>=1.36"]
 dev = ["pytest>=8.0"]
 
 [project.scripts]
-cpr-tool = "cpr_tool.cli:main"  # TEMPLATE: short CLI alias = "<package>.cli:main"
+cst = "claim_stress_tester.cli:main"
 
 [tool.setuptools.packages.find]
-include = ["cpr_tool*"]  # TEMPLATE: package name
+include = ["claim_stress_tester*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

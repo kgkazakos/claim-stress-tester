@@ -1,4 +1,4 @@
-"""AI layer for cpr-tool.
+"""AI layer for claim-stress-tester.
 
 Strictly additive. If no backend is configured or a call fails, this module returns
 None and the rule-based report stands unchanged. It never reads or mutates any value

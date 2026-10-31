@@ -1,5 +1,5 @@
-from cpr_tool.engine import analyze
-from cpr_tool.models import Finding
+from claim_stress_tester.engine import analyze
+from claim_stress_tester.models import Finding
 
 import pytest
 

@@ -5,15 +5,18 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass, field
 from typing import Any, Optional
 
-TOOL_NAME = "cpr-tool"  # TEMPLATE: set to the tool slug
-EXPORT_SCHEMA = "cpr.tool.export/1"  # TEMPLATE: cpr.<abbrev>.export/1
+TOOL_NAME = "claim-stress-tester"
+EXPORT_SCHEMA = "cpr.cst.export/1"
 
-AI_PARADIGM = "Rule-based"  # TEMPLATE: the roadmap's primary paradigm
+AI_PARADIGM = "LLM (reasoning / test-time deliberation)"
 AI_PARADIGM_RATIONALE = (
-    # TEMPLATE: one paragraph on why this paradigm fits this research task.
-    "This skeleton uses a deterministic rule-based core so that every finding is "
-    "reproducible and auditable without a model. Replace this paragraph with the "
-    "methodological case for the tool's own paradigm."
+    "Falsifying a research claim is adversarial, open-ended reasoning, not a lookup: it "
+    "means imagining the populations, contexts, confounds and rival explanations under "
+    "which the claim would fail, and saying what evidence would show it. A reasoning model "
+    "spending deliberate test-time compute is the right fit for that search. A deterministic "
+    "stress profile runs first and always, so the model attacks a claim whose structural "
+    "weak points are already named, and verification-chain mode has the engine check every "
+    "falsification path against the evidence the researcher actually supplied."
 )
 
 SEVERITIES = ("high", "medium", "low")
