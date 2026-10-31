@@ -78,7 +78,7 @@ cst paradigm                                                # paradigm + rationa
 streamlit run claim_stress_tester/app.py
 ```
 
-Frame A visual language: deep violet accent `#4f3d8f`, DM Sans and DM Mono, near-black sidebar, warm-beige controls, cream main, card rows with severity chips. The sidebar holds a model picker with Anthropic, OpenAI, Google and local Ollama presets, plus a free-text field for any litellm id. Each claim renders as a card with its synthetic share, then its falsification paths with the engine's check chips, labelled as AI-generated with the model id, then the stress profile that verified them.
+Frame A visual language: deep violet accent `#4f3d8f`, DM Sans and DM Mono, near-black sidebar, warm-beige controls, cream main, card rows with severity chips. The sidebar holds a model picker with Anthropic, OpenAI, Google and local Ollama presets, plus a free-text field for any litellm id. Each claim renders as a card with its synthetic share, then its falsification paths with the engine's check chips, labelled as AI output and tagged with the model id, then the stress profile that verified them.
 
 ## The stress rules
 
